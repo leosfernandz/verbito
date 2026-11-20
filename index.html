@@ -227,15 +227,18 @@ button:disabled {
   display:none
 }
 
-.mirror .marked {
-  border-radius:.15em;
-  padding:0 .05em;
+/* Anúncios integrados à linha de leitura, sem caixas sólidas. */
+.mirror .marked,
+.published .marked {
+  border-radius:.12em;
+  padding:0 .025em;
   box-decoration-break:clone;
-  -webkit-box-decoration-break:clone
+  -webkit-box-decoration-break:clone;
 }
 
+/* Selo de publicidade discreto, sempre à esquerda do anúncio. */
 .admark {
-  font-size:.25em;
+  font-size:.24em;
   font-weight:800;
   vertical-align:middle;
   display:inline-block;
@@ -245,26 +248,37 @@ button:disabled {
   border:1px solid currentColor;
   border-radius:99px;
   padding:.1em .35em;
-  line-height:1.15
+  line-height:1.15;
 }
 
+/* Os três níveis pagos ganham intensidade progressiva. */
 .marked.soft {
-  background:#d2b5ff;
-  color:#231337
+  color:#d8b8ff;
+  background:rgba(169,111,237,.10);
+  text-decoration:underline;
+  text-decoration-color:rgba(183,128,245,.38);
+  text-decoration-thickness:.045em;
+  text-underline-offset:.13em;
 }
 
 .marked.glow {
-  border:1px solid #d7a9ff;
-  background:linear-gradient(120deg,#5620a5,#8314b7);
-  color:#fff;
-  box-shadow:0 0 .22em #b48aff
+  color:#e8ccff;
+  background:rgba(164,97,237,.13);
+  text-decoration:underline;
+  text-decoration-color:rgba(189,126,255,.72);
+  text-decoration-thickness:.06em;
+  text-underline-offset:.13em;
+  text-shadow:0 0 .3em rgba(174,111,255,.22);
 }
 
 .marked.max {
-  border:1px solid #ffd579;
-  color:#fff8e4;
-  box-shadow:0 0 .34em #ffc36d;
-  background:linear-gradient(120deg,#754000,#ae680a)
+  color:#ffe1ad;
+  background:rgba(220,156,61,.10);
+  text-decoration:underline;
+  text-decoration-color:rgba(255,195,106,.85);
+  text-decoration-thickness:.075em;
+  text-underline-offset:.13em;
+  text-shadow:0 0 .28em rgba(255,184,84,.28);
 }
 
 .actions {
@@ -365,23 +379,25 @@ button:disabled {
   white-space:nowrap
 }
 
+/* Amostras no seletor seguem a mesma identidade visual do texto. */
 .sample.soft {
-  background:#d2b5ff;
-  color:#231337
+  color:#d8b8ff;
+  background:rgba(169,111,237,.10);
+  border-bottom:1px solid rgba(183,128,245,.38);
 }
 
 .sample.glow {
-  border:1px solid #b48aff;
-  background:linear-gradient(120deg,#5620a5,#8314b7);
-  color:#fff;
-  box-shadow:0 0 9px #b48aff
+  color:#e8ccff;
+  background:rgba(164,97,237,.13);
+  border-bottom:1px solid rgba(189,126,255,.72);
+  text-shadow:0 0 5px rgba(174,111,255,.22);
 }
 
 .sample.max {
-  border:1px solid #f2bf64;
-  background:linear-gradient(120deg,#754000,#ae680a);
-  color:#fff8e4;
-  box-shadow:0 0 12px #ffc36d
+  color:#ffe1ad;
+  background:rgba(220,156,61,.10);
+  border-bottom:1px solid rgba(255,195,106,.85);
+  text-shadow:0 0 5px rgba(255,184,84,.28);
 }
 
 .payment {
@@ -637,6 +653,91 @@ button:disabled {
 }
 
 
+
+/* ============================================================
+   ACESSIBILIDADE E RESPONSIVIDADE — REVISÃO 0.5
+   Paletas independentes para temas claro/escuro. Os estilos
+   aplicam-se tanto ao texto publicado quanto à prévia e cartões.
+   ============================================================ */
+:root {
+  --ad-soft-text:#a7e9d7;
+  --ad-soft-bg:rgba(37,190,150,.12);
+  --ad-soft-line:#41c9a7;
+  --ad-glow-text:#d5c1ff;
+  --ad-glow-bg:rgba(135,95,237,.12);
+  --ad-glow-line:#a77bff;
+  --ad-max-text:#ffe1a7;
+  --ad-max-bg:rgba(224,151,48,.12);
+  --ad-max-line:#eab04c;
+}
+html.light {
+  --ad-soft-text:#086e58;
+  --ad-soft-bg:rgba(7,139,108,.10);
+  --ad-soft-line:#087d63;
+  --ad-glow-text:#5932a3;
+  --ad-glow-bg:rgba(113,73,202,.10);
+  --ad-glow-line:#7951c7;
+  --ad-max-text:#82500a;
+  --ad-max-bg:rgba(192,125,18,.12);
+  --ad-max-line:#a86d12;
+}
+.marked.soft,.sample.soft {
+  color:var(--ad-soft-text);
+  background:var(--ad-soft-bg);
+  text-decoration-color:var(--ad-soft-line);
+  border-bottom-color:var(--ad-soft-line);
+  text-shadow:none;
+}
+.marked.glow,.sample.glow {
+  color:var(--ad-glow-text);
+  background:var(--ad-glow-bg);
+  text-decoration-color:var(--ad-glow-line);
+  border-bottom-color:var(--ad-glow-line);
+  text-shadow:0 0 .2em rgba(145,94,237,.13);
+}
+.marked.max,.sample.max {
+  color:var(--ad-max-text);
+  background:var(--ad-max-bg);
+  text-decoration-color:var(--ad-max-line);
+  border-bottom-color:var(--ad-max-line);
+  text-shadow:0 0 .22em rgba(230,160,60,.13);
+}
+html.light .marked.glow,html.light .sample.glow,
+html.light .marked.max,html.light .sample.max { text-shadow:none; }
+/* Quando o editor está em modo de prévia, só o texto real fica
+   transparente: o espelho colorido permanece legível em ambos temas. */
+html.light .typing.ad-preview { color:transparent; }
+html.light .mirror .marked { opacity:1; }
+/* Não deixar colunas ou botões excederem a largura da tela. */
+.top,.layout,.main,.actions,.buttons,.adpanel,.tiers { min-width:0; }
+.buttons { flex-wrap:wrap; justify-content:flex-end; }
+.tier { overflow:hidden; }
+@media (max-width:650px) {
+  /* Em telas estreitas, os níveis passam para duas colunas. */
+  .tiers { grid-template-columns:repeat(2,minmax(0,1fr)); }
+  .sample { font-size:clamp(10px,2.6vw,12px); }
+  .tier small { font-size:10px; }
+  /* Conteúdo mais alto que a janela continua acessível. */
+  html,body { height:auto; min-height:100%; overflow-x:hidden; overflow-y:auto; }
+  .shell { height:auto; min-height:100dvh; grid-template-rows:auto minmax(300px,1fr) auto; }
+  .layout { min-height:0; }
+  .main { min-height:340px; }
+  .editor { min-height:210px; }
+  .top .eyebrow { overflow-wrap:anywhere; }
+}
+@media (max-width:380px) {
+  .top { grid-template-columns:auto minmax(0,1fr) auto; }
+  .logo { font-size:16px; }
+  .theme { padding:5px; }
+  .actions { flex-wrap:wrap; }
+  .people { flex:1; }
+  .btn { padding:7px 9px; }
+}
+@media (max-height:560px) and (min-width:651px) {
+  html,body { overflow-y:auto; }
+  .shell { height:auto; min-height:100dvh; }
+  .layout { min-height:360px; }
+}
 </style>
 </head>
 <body>
