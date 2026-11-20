@@ -738,6 +738,218 @@ html.light .mirror .marked { opacity:1; }
   .shell { height:auto; min-height:100dvh; }
   .layout { min-height:360px; }
 }
+
+/* Painel lateral de anúncios e informações jurídicas */
+.main{grid-template-rows:minmax(0,1fr) auto}
+.sidebar{min-height:0;display:flex;flex-direction:column;gap:12px;align-self:start}
+.adbox{background:var(--panel);border:1px solid var(--line);border-radius:19px;padding:12px}
+.adtoggle{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border-radius:11px;color:var(--accent);border-color:var(--accent);letter-spacing:.05em}
+.adbox-caption{font-size:11px;color:var(--muted);text-align:center;margin:8px 0 0}
+.adbox .adpanel{margin-top:10px;padding:7px;border-radius:12px}
+.adbox .adpanel-top{display:none}
+.adbox .tiers{display:grid;grid-template-columns:1fr;gap:5px}
+.adbox .tier{width:100%;min-width:0;flex-wrap:wrap;justify-content:space-between;text-align:left;gap:5px;padding:7px}
+.adbox .sample{font-size:11px}
+.adbox .tier small{font-size:10px}
+.legal-links{display:flex;justify-content:center;gap:6px 14px;flex-wrap:wrap;margin-top:5px}
+.legal-links button{border:0;background:none;color:var(--accent);font-size:11px;padding:2px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
+.foot-status{font-size:9px;margin-top:4px;opacity:.8}
+.legal-dialog{width:min(720px,calc(100% - 24px));max-height:min(85dvh,850px);overflow:auto;line-height:1.55}
+.legal-dialog h2{font-size:21px}
+.legal-dialog h3{font-size:15px;margin:18px 0 5px}
+.legal-dialog p,.legal-dialog li{font-size:13px}
+.legal-dialog ul{padding-left:20px}
+.legal-close{float:right;border:1px solid var(--line);background:var(--bg);color:var(--fg);border-radius:10px;padding:6px 11px}
+@media(max-width:650px){
+ html,body{overflow:auto;height:auto;min-height:100%}
+ .shell{height:auto;min-height:100dvh;grid-template-rows:auto auto auto}
+ .layout{grid-template-rows:auto auto}
+ .main{min-height:290px;grid-template-rows:minmax(250px,48dvh) auto}
+ .sidebar{gap:8px}
+ .adbox{padding:10px}
+ .adbox .tiers{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .adbox .tier{display:flex;flex-direction:column;align-items:start}
+ .payment{align-self:stretch}
+ .foot{line-height:1.5}
+}
+@media(min-width:651px) and (max-height:650px){html,body{overflow:auto;height:auto}.shell{height:auto;min-height:100dvh}.layout{min-height:380px}}
+/* Ajuste de proporções: a base do cartão Pix acompanha a base do editor. */
+@media (min-width:651px) and (min-height:651px) {
+  .main { grid-template-rows:minmax(0,1fr) auto; }
+  .sidebar { height:calc(100% - 46px); align-self:start; }
+  .payment { flex:1; min-height:0; display:flex; flex-direction:column; justify-content:space-between; align-self:stretch; }
+}
+/* Sinal luminoso contido, sem brilho agressivo e com opção de movimento reduzido. */
+.adbox { isolation:isolate; }
+.adbox::before {
+  content:""; position:absolute; inset:-2px; border-radius:21px; z-index:-1;
+  background:conic-gradient(from var(--neon-angle,0deg),#7d4ef1,#e08aff,#58d8e8,#7d4ef1);
+  animation:neon-turn 5s linear infinite; opacity:.8;
+}
+.adbox::after {content:"";position:absolute;inset:0;border-radius:19px;background:var(--panel);z-index:-1;}
+@property --neon-angle {syntax:"<angle>";inherits:false;initial-value:0deg;}
+@keyframes neon-turn {to {--neon-angle:360deg;}}
+.adbox .adtoggle {text-shadow:0 0 12px rgba(180,120,255,.5);}
+.draft-error {color:#f19e9e;font-size:11px;line-height:1.3;max-width:100%;}
+@media (prefers-reduced-motion:reduce){.adbox::before{animation:none;}}
+/* O seletor flutua sobre a interface, sem deslocar o Pix nem ampliar a página. */
+.adbox { position:relative; flex:none; z-index:5; }
+.adbox .adpanel:not([hidden]) {
+  position:absolute; top:calc(100% + 6px); right:0; width:100%;
+  margin:0; z-index:20; background:var(--panel);
+  border:1px solid var(--accent); box-shadow:0 14px 32px #0005;
+  max-height:min(260px,48dvh); overflow-y:auto;
+}
+@media (max-width:650px) {
+  .sidebar { height:auto; }
+  .adbox .adpanel:not([hidden]) { width:min(320px,calc(100vw - 20px)); max-height:min(240px,42dvh); }
+}
+@media (min-width:651px) and (max-height:650px) {
+  .sidebar { height:auto; }
+}
+
+/* v4: anúncio integrado, sem popover sobre o Pix; coluna acompanha o editor. */
+@media (min-width:651px) {
+ .layout { grid-template-columns:minmax(0,1fr) clamp(245px,31vw,440px); align-items:stretch; }
+ .sidebar { height:calc(100% - 46px); align-self:start; min-height:0; display:flex; flex-direction:column; gap:9px; }
+ .adbox { flex:none; padding:8px; }
+ .adbox-caption { display:none; }
+ .adbox .adpanel:not([hidden]) { position:static; width:auto; max-height:none; overflow:visible; margin-top:8px; box-shadow:none; border:0; padding:0; background:transparent; }
+ .adbox .tiers { grid-template-columns:repeat(2,minmax(0,1fr)); gap:6px; }
+ .adbox .tier { display:flex; flex-direction:column; align-items:center; justify-content:center; text-align:center; padding:8px 3px; gap:3px; min-height:57px; }
+ .adbox .tier small { font-size:clamp(9px,1vw,11px); }
+ .payment { flex:1 1 auto; min-height:0; align-self:stretch; display:flex; flex-direction:column; justify-content:space-evenly; padding:clamp(9px,1.4vw,18px); }
+ .payment .qr { width:clamp(70px,8vw,110px); }
+ .sidebar:has(.adpanel:not([hidden])) .payment { padding:9px; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:6px; text-align:left; }
+ .sidebar:has(.adpanel:not([hidden])) .payment h2 { font-size:12px; margin:0; }
+ .sidebar:has(.adpanel:not([hidden])) .payment .price { font-size:clamp(18px,2vw,26px); margin:3px 0; }
+ .sidebar:has(.adpanel:not([hidden])) .payment .qr { width:clamp(55px,7vw,95px); grid-column:2; grid-row:1/3; }
+ .sidebar:has(.adpanel:not([hidden])) .payment .pix { grid-column:1/-1; margin:0; padding:6px; }
+}
+.editor { cursor:text; }
+@media (max-width:650px) {
+ .adbox .adpanel:not([hidden]) { position:static; width:100%; max-height:none; overflow:visible; margin-top:8px; box-shadow:none; }
+ .adbox .tiers { grid-template-columns:repeat(2,minmax(0,1fr)); }
+ .adbox .tier { min-height:62px; align-items:center; justify-content:center; text-align:center; }
+ .adbox-caption { display:none; }
+ .payment { min-height:90px; }
+}
+@media (min-width:651px) and (max-height:690px) {
+ .sidebar { height:auto; }
+ .payment { min-height:130px; }
+ .sidebar:has(.adpanel:not([hidden])) .payment { min-height:115px; }
+}
+
+/* Realce adicional apenas no botão ANUNCIAR, sem alterar o layout. */
+.adbox { overflow:visible; }
+.adbox .adtoggle {
+  position:relative;
+  isolation:isolate;
+  border:1px solid rgba(192,137,255,.85);
+  box-shadow:0 0 9px rgba(169,93,255,.38), 0 0 19px rgba(134,86,255,.16), inset 0 0 10px rgba(162,103,255,.10);
+  animation:anunciar-pulse 2.8s ease-in-out infinite;
+  transition:box-shadow .2s ease, transform .2s ease;
+}
+.adbox .adtoggle:hover,
+.adbox .adtoggle:focus-visible {
+  box-shadow:0 0 12px rgba(207,131,255,.8), 0 0 30px rgba(149,77,255,.52), inset 0 0 14px rgba(178,101,255,.18);
+}
+@keyframes anunciar-pulse {
+  0%,100% {box-shadow:0 0 7px rgba(168,95,255,.32),0 0 16px rgba(126,72,240,.14),inset 0 0 8px rgba(166,95,255,.08)}
+  50% {box-shadow:0 0 13px rgba(205,126,255,.76),0 0 28px rgba(140,85,255,.36),inset 0 0 12px rgba(171,103,255,.14)}
+}
+@media(prefers-reduced-motion:reduce){.adbox .adtoggle{animation:none}}
+
+/* v5 — alinhamento real: a coluna Pix termina na base do editor,
+   inclusive em notebooks com janela de pouca altura. */
+@media (min-width:651px) {
+  .layout { align-items:stretch; }
+  .sidebar {
+    height:calc(100% - 48px);
+    min-height:0;
+    align-self:stretch;
+  }
+  .payment {
+    flex:1 1 0;
+    min-height:0;
+    align-self:stretch;
+    justify-content:space-between;
+  }
+}
+/* Em telas baixas, preservar conteúdo acessível em vez de cortá-lo. */
+@media (min-width:651px) and (max-height:560px) {
+  .sidebar { height:auto; }
+  .payment { min-height:220px; }
+}
+
+/* v6 — correção estrutural: a lateral ocupa a mesma linha do editor.
+   O espaço dos botões sob o editor é reservado DENTRO da lateral,
+   em vez de depender de height:calc() com grid/flex auto. */
+@media (min-width:651px) {
+  .layout { grid-template-rows:minmax(0,1fr); align-items:stretch; }
+  .sidebar {
+    height:100% !important;
+    min-height:0;
+    box-sizing:border-box;
+    padding-bottom:48px;
+    display:grid;
+    grid-template-columns:minmax(0,1fr);
+    grid-template-rows:auto minmax(0,1fr);
+    align-self:stretch;
+    gap:9px;
+  }
+  .payment {
+    height:100%;
+    min-height:0;
+    align-self:stretch;
+    display:flex;
+    flex-direction:column;
+    justify-content:space-between;
+  }
+  .sidebar:has(.adpanel:not([hidden])) .payment {
+    height:100%;
+    min-height:0;
+  }
+}
+@media (min-width:651px) and (max-height:480px) {
+  .sidebar { padding-bottom:0; height:auto !important; grid-template-rows:auto auto; }
+  .payment { min-height:170px; }
+}
+
+/* v7 — conteúdo do Pix centralizado sem alterar a altura alinhada ao editor. */
+@media (min-width:651px) {
+  .sidebar .payment,
+  .sidebar:has(.adpanel:not([hidden])) .payment {
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    justify-content:center;
+    text-align:center;
+    gap:clamp(9px,2.2vh,20px);
+    padding:clamp(10px,1.5vw,20px);
+  }
+  .sidebar .payment > div:first-child { width:100%; text-align:center; }
+  .sidebar .payment .price { margin:7px 0 0; }
+  .sidebar .payment .qr {
+    flex:none;
+    grid-column:auto;
+    grid-row:auto;
+    margin:0 auto;
+  }
+  .sidebar .payment .pix {
+    flex:none;
+    width:100%;
+    grid-column:auto;
+    grid-row:auto;
+    margin:0;
+  }
+}
+@media (min-width:651px) and (max-height:540px) {
+  .sidebar .payment,
+  .sidebar:has(.adpanel:not([hidden])) .payment { gap:7px; padding:8px; }
+  .sidebar .payment .qr { width:clamp(48px,7vh,75px); }
+}
+
 </style>
 </head>
 <body>
@@ -765,11 +977,12 @@ html.light .mirror .marked { opacity:1; }
 <div class="actions">
 <div class="people">♧ <strong id="participants">0</strong> participantes</div>
 <div class="buttons">
-<button class="btn" id="adButton" aria-expanded="false">♧ Anúncio</button>
-<button class="btn primary" id="continue" disabled>Continuar →</button>
+
+<span id="draftError" class="draft-error" role="status" aria-live="polite"></span><button class="btn primary" id="continue" disabled>Continuar →</button>
 </div>
 </div>
-<section id="adpanel" class="adpanel" hidden>
+</main>
+<aside class="sidebar"><section class="adbox"><button class="btn adtoggle" id="adButton" aria-expanded="false" aria-controls="adpanel">✦ ANUNCIAR <span aria-hidden="true">⌄</span></button><p class="adbox-caption">Destaque suas palavras no texto coletivo</p><section id="adpanel" class="adpanel" hidden>
 <div class="adpanel-top">
 <span>Prévia no seu próprio texto</span>
 <span>Preço por palavra</span>
@@ -796,8 +1009,7 @@ html.light .mirror .marked { opacity:1; }
 </button>
 </div>
 </section>
-</main>
-<aside class="payment">
+</section><aside class="payment">
 <div>
 <h2>Sua contribuição</h2>
 <div class="count" id="wordCount">0 palavras</div>
@@ -805,9 +1017,9 @@ html.light .mirror .marked { opacity:1; }
 </div>
 <div class="qr">QR CODE<br>PIX FUTURO</div>
 <button class="pix" disabled>Pix copia e cola ⧉</button>
-</aside>
+</aside></aside>
 </div>
-<footer class="foot">Texto coletivo em tempo real · Publicações temporariamente indisponíveis</footer>
+<footer class="foot"><div>As contribuições são de responsabilidade de seus autores. Conteúdos ilícitos poderão ser removidos, sem prejuízo dos deveres legais da plataforma.</div><nav class="legal-links" aria-label="Informações legais"><button type="button" data-legal="terms">Termos de Uso</button><button type="button" data-legal="privacy">Privacidade</button><button type="button" data-legal="guidelines">Diretrizes</button><button type="button" data-legal="reports">Denunciar</button></nav><div class="foot-status">Texto em tempo real · Rascunho local · Pagamentos e publicações indisponíveis</div></footer>
 </div>
 <dialog id="checkout" class="dialog">
 <h2>Confirmar contribuição</h2>
@@ -815,16 +1027,22 @@ html.light .mirror .marked { opacity:1; }
 </p>
 <label for="nickname">Apelido (opcional)</label>
 <input id="nickname" maxlength="20" placeholder="Anônimo">
-<p class="hint">Publicação indisponível até a integração do Pix.</p>
+<p class="hint">Seu texto é apenas um rascunho local. Publicação e pagamento ainda não estão disponíveis.</p>
 <div class="buttons">
 <button class="btn" id="cancel">Cancelar</button>
-<button class="btn primary" id="simulate">Simular pagamento</button>
+<button class="btn primary" id="simulate" disabled>Pagamento indisponível</button>
 </div>
 </dialog>
+<dialog id="legalDialog" class="dialog legal-dialog" aria-labelledby="legalTitle"><button type="button" class="legal-close" id="legalClose">Fechar ✕</button><h2 id="legalTitle"></h2><div id="legalContent"></div></dialog>
+<template id="legal-terms"><h2>Termos de Uso</h2><p><strong>Minuta v1.0 · 20/11/2026.</strong> Responsável: [nome ou razão social]; CPF/CNPJ: [informar]; contato: [e-mail]. Dados obrigatórios devem ser preenchidos antes da operação comercial.</p><h3>1. Serviço e aceitação</h3><p>O verbi.to é uma plataforma de escrita coletiva em que contribuições podem ser acrescentadas a um texto público contínuo. Antes da contratação, o participante deverá aceitar estes Termos e conhecer a Política de Privacidade e as Diretrizes. A participação sem cadastro não significa anonimato técnico absoluto.</p><h3>2. Valores e funcionamento</h3><p>Publicação normal: R$ 1 por palavra. Destaque: R$ 5 por palavra. Premium: R$ 10 por palavra. Máximo: R$ 20 por palavra. A quantidade, a modalidade e o preço total deverão ser apresentados antes do pagamento. O pagamento somente será confirmado por comunicação válida do prestador de serviços de pagamento; comprovantes isolados não bastam.</p><p>O texto é coletivo e dinâmico: novas palavras podem modificar o contexto de leitura. Não há garantia de posição visual permanente de uma contribuição.</p><h3>3. Publicidade</h3><p>As modalidades publicitárias serão identificadas com o selo AD. A identificação não representa endosso da plataforma. O anunciante responde pela licitude e veracidade da mensagem; anúncios enganosos, abusivos ou ilícitos serão recusados ou removidos conforme as regras aplicáveis.</p><h3>4. Conteúdo e moderação</h3><p>O participante responde pelo conteúdo que envia e declara possuir direitos para sua publicação. São proibidos ameaças, incitação ilícita à violência, discriminação ilícita, exposição indevida de dados, fraude e violação de direitos de terceiros. O verbi.to poderá recusar, restringir ou remover contribuições com justificativa proporcional, preservados os deveres legais da plataforma e os meios de contestação cabíveis. Pagar não garante a publicação de conteúdo proibido.</p><h3>5. Direitos autorais</h3><p>Ao publicar, o participante concede licença não exclusiva para armazenar, reproduzir e exibir sua contribuição como parte do texto coletivo e para divulgação legítima do projeto, sem transferência automática da titularidade dos direitos autorais. A proteção de palavras ou expressões isoladas dependerá da legislação aplicável.</p><h3>6. Cancelamento e reembolso</h3><p>Cancelamentos, arrependimento, falhas na prestação e reembolsos observarão o Código de Defesa do Consumidor, inclusive o art. 49 quando aplicável. A execução digital não será considerada renúncia automática a direitos. Recusa de publicação após pagamento dará ensejo à solução legalmente devida. Remoção posterior será analisada caso a caso, sem afastar direitos obrigatórios do consumidor.</p><h3>7. Atendimento e alterações</h3><p>Contato: [e-mail oficial]. Alterações relevantes serão informadas adequadamente e não prejudicarão direitos assegurados por lei. Aplicam-se as normas brasileiras e as regras de competência e proteção do consumidor.</p><p><strong>Referências:</strong> Constituição Federal, art. 5º; Leis 8.078/1990, 12.965/2014 e 13.709/2018; Decreto 7.962/2013; jurisprudência aplicável do STF sobre responsabilidade de plataformas.</p></template>
+<template id="legal-privacy"><h2>Política de Privacidade</h2><p><strong>Minuta v1.0 · 20/11/2026.</strong> Controlador: [identificação]; contato para privacidade: [e-mail]. Esta política deverá ser ajustada aos tratamentos efetivamente implementados.</p><h3>1. Quais dados</h3><p>Conforme as funcionalidades ativadas, poderão ser tratados apelido, texto publicado, identificador da contribuição, informações de transação e pagamento, comunicações de suporte e denúncia, dados técnicos e registros de acesso quando coletados. A preferência de tema poderá ser guardada no navegador. Não se deve publicar dados bancários ou informações pessoais de pagamento junto ao texto coletivo.</p><h3>2. Finalidades e bases legais</h3><p>As finalidades são operar o texto coletivo, executar contratações, confirmar pagamentos, prestar atendimento, prevenir fraudes, cumprir obrigações legais e defender direitos. A base legal deverá ser determinada para cada tratamento, conforme art. 7º da LGPD; aceitar os Termos não equivale a consentimento genérico.</p><h3>3. Publicidade e anonimato</h3><p>O texto aprovado e o apelido escolhido poderão ficar públicos. Escolher “Anônimo” oculta apenas a identificação pública e não impede tratamentos técnicos ou transacionais legítimos.</p><h3>4. Prestadores e transferências</h3><p>O projeto prevê infraestrutura Vercel e Firebase/Google. Um processador de Pix ainda será escolhido. Compartilhamentos, locais de armazenamento e possíveis transferências internacionais deverão ser verificados e detalhados antes da cobrança real.</p><h3>5. Retenção e segurança</h3><p>Os dados serão conservados somente pelo tempo necessário às finalidades e obrigações legais. Quando aplicável, registros de acesso à aplicação observarão as condições e o prazo legal de seis meses previstos no Marco Civil. Serão empregados controles de acesso, segregação entre dados públicos e privados e proteção de credenciais.</p><h3>6. Direitos dos titulares</h3><p>Os titulares poderão solicitar acesso, confirmação de tratamento, correção, eliminação, bloqueio, informação sobre compartilhamentos e demais direitos previstos no art. 18 da LGPD, conforme aplicável. Solicitações: [e-mail]. Poderá ser necessária verificação proporcional de identidade.</p><h3>7. Crianças e adolescentes</h3><p>O projeto deverá implementar medidas de proteção etária compatíveis com a legislação, inclusive a Lei 15.211/2025 quando aplicável, antes da operação comercial.</p><h3>8. Alterações</h3><p>Alterações relevantes serão comunicadas de maneira adequada. A política publicada deverá refletir a operação real, inclusive cookies e ferramentas de análise eventualmente utilizados.</p><p><strong>Referências:</strong> LGPD (Lei 13.709/2018), Marco Civil da Internet (Lei 12.965/2014) e legislação de proteção de crianças e adolescentes.</p></template>
+<template id="legal-guidelines"><h2>Diretrizes da Comunidade</h2><p><strong>Versão 1.0.</strong> O verbi.to incentiva criatividade, crítica, sátira, debate e expressão de opiniões diversas. Discordância ou provocação, isoladamente, não constituem infração.</p><h3>1. Conteúdos proibidos</h3><ul><li>Ameaças, incitação ilícita à violência e perseguição.</li><li>Racismo, discriminação ilícita e assédio grave.</li><li>Exposição indevida de dados pessoais e material íntimo sem autorização.</li><li>Exploração sexual, especialmente de crianças e adolescentes.</li><li>Fraude, golpes, falsificação de identidade e violação de direitos de terceiros.</li><li>Publicidade enganosa, abusiva ou proibida por lei.</li></ul><h3>2. Contexto importa</h3><p>As contribuições serão analisadas considerando contexto, finalidade, risco concreto, liberdade de expressão e direitos das pessoas afetadas. Uma palavra isolada não é automaticamente ilícita; o contexto também não justifica ameaças ou outras condutas ilegais.</p><h3>3. Conteúdo pago</h3><p>Contribuições pagas e anúncios seguem as mesmas regras, com atenção adicional às exigências de publicidade. O selo AD identifica destaques comerciais, não aprovação editorial.</p><h3>4. Consequências</h3><p>A plataforma poderá recusar publicação, ocultar, remover ou encaminhar conteúdo às autoridades nos casos legalmente justificados. As medidas buscarão proporcionalidade, documentação e possibilidade de contestação quando cabível.</p><h3>5. Responsabilidade compartilhada</h3><p>O autor responde pelo conteúdo que envia, sem exclusão dos deveres legais do verbi.to. Não publique dados pessoais ou informações sigilosas de terceiros.</p></template>
+<template id="legal-reports"><h2>Denúncias e Moderação</h2><p><strong>Versão 1.0 · Procedimento proposto.</strong> O canal de denúncias deverá ser implementado antes da publicação comercial. <strong>Atualmente não há formulário operacional de denúncias integrado ao backend.</strong></p><h3>1. Quem pode denunciar</h3><p>Qualquer pessoa poderá denunciar contribuição potencialmente ilícita ou contrária às Diretrizes, sem necessidade de cadastro ou pagamento.</p><h3>2. Como denunciar</h3><p>Quando o canal estiver ativo, informe a contribuição ou trecho, motivo, contexto e, se possível, evidências. O contato para acompanhamento será tratado conforme a LGPD. Canal oficial a configurar: [e-mail ou formulário].</p><h3>3. Triagem e prioridade</h3><p>As denúncias serão avaliadas conforme gravidade, urgência e risco. Ameaças concretas, exploração de menores e divulgação íntima não consentida exigem prioridade e medidas adequadas.</p><h3>4. Decisões e recursos</h3><p>A análise poderá resultar em manutenção, restrição, remoção ou outras medidas legalmente justificadas. Denunciar não implica remoção automática. Sempre que viável, a decisão será documentada e poderá ser contestada.</p><h3>5. Privacidade</h3><p>Dados de denunciantes e envolvidos serão protegidos; registros somente serão preservados ou compartilhados conforme hipóteses legais pertinentes.</p><p><strong>Importante:</strong> antes do lançamento, definir equipe responsável, canal real, prazos internos e procedimento de resposta.</p></template>
 <script type="module">
 /* ============================================================
-   VERBI.TO — LEITURA PÚBLICA EM TEMPO REAL
-   Nenhuma escrita no Firestore, checkout ou pagamento de teste.
+   VERBI.TO — LEITURA PÚBLICA + RASCUNHO LOCAL
+   O editor aceita digitação e prévia, mas não publica nem cobra.
+   Somente o backend poderá registrar contribuições pagas.
    ============================================================ */
 import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
 import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
@@ -848,21 +1066,141 @@ const mirror = $('mirror');
 let entries = [];
 let frame = 0;
 
-// Bloqueia qualquer contribuição enquanto o Pix real não estiver disponível.
-words.setAttribute('contenteditable', 'false');
-words.setAttribute('aria-readonly', 'true');
-words.dataset.placeholder = 'Aguardando a primeira contribuição...';
+// O campo permanece editável, mas nada digitado é enviado ao Firestore.
+const rates = { normal: 1, soft: 5, glow: 10, max: 20 };
+const money = value => value.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+const count = text => text.trim() ? text.trim().split(/\s+/u).length : 0;
+// Heurísticas de qualidade do rascunho; o backend deverá revalidar antes de cobrar/publicar.
+function validateDraft(text) {
+  const tokens = text.match(/[^\s]+/gu) || [];
+  if (!tokens.length) return '';
+  if (tokens.length > 100) return 'Limite de 100 palavras por contribuição.';
+  for (const token of tokens) {
+    const letters = token.replace(/[^\p{L}\p{N}]/gu, '');
+    if (!letters) return 'Use palavras com letras ou números, não apenas símbolos.';
+    if ([...letters].length > 40) return 'Uma palavra ultrapassou 40 caracteres. Divida o texto.';
+    if (/(.)\1{6,}/iu.test(letters)) return 'Evite sequências exageradas da mesma letra ou número.';
+    if (/^(.{1,4})\1{4,}$/iu.test(letters)) return 'Evite repetir a mesma sequência como se fosse uma palavra.';
+  }
+  return '';
+}
+const value = () => words.innerText.replace(/\u00a0/g, ' ').replace(/\n{3,}/g, '\n\n').trim();
+let tier = 'normal';
+words.setAttribute('contenteditable', 'plaintext-only');
+words.removeAttribute('aria-readonly');
+words.dataset.placeholder = 'palavra...';
 $('continue').disabled = true;
-$('continue').title = 'Publicação disponível após integração do Pix';
-$('adButton').disabled = true;
-$('adButton').title = 'Anúncios disponíveis após integração do Pix';
 $('adpanel').hidden = true;
-$('wordCount').textContent = '0 palavras';
-$('price').textContent = 'R$ 0,00';
 $('simulate').disabled = true;
-$('simulate').textContent = 'Pagamento indisponível';
-$('checkout').close?.();
 $('cancel').addEventListener('click', () => $('checkout').close());
+const legalDialog = $('legalDialog');
+$('legalClose').addEventListener('click', () => legalDialog.close());
+document.querySelectorAll('[data-legal]').forEach(button => button.addEventListener('click', () => {
+  const template = $('legal-' + button.dataset.legal);
+  if (!template) return;
+  const copy = template.content.cloneNode(true);
+  const heading = copy.querySelector('h2');
+  $('legalTitle').textContent = heading?.textContent || 'Informações legais';
+  heading?.remove();
+  $('legalContent').replaceChildren(copy);
+  legalDialog.showModal();
+}));
+
+// Espelha o destaque no rascunho, preservando a posição do cursor nativo.
+function preview() {
+  const text = value();
+  const show = tier !== 'normal' && !!text;
+  mirror.replaceChildren();
+  mirror.hidden = !show;
+  words.classList.toggle('ad-preview', show);
+  if (show) {
+    const mark = document.createElement('span');
+    mark.className = 'marked ' + tier;
+    const ad = document.createElement('sup');
+    ad.className = 'admark';
+    ad.textContent = 'AD';
+    mark.append(ad, document.createTextNode(text));
+    mirror.append(mark);
+  }
+}
+
+function updateDraft() {
+  const text = value();
+  const n = count(text);
+  $('wordCount').textContent = `${n} ${n === 1 ? 'palavra' : 'palavras'}`;
+  $('price').textContent = money(n * rates[tier]);
+  const error = validateDraft(text);
+  $('draftError').textContent = error;
+  $('continue').disabled = n === 0 || text.length > 60000 || !!error;
+  preview();
+  fitSoon();
+}
+
+// Clique em qualquer ponto livre do retângulo ativa a digitação.
+editor.addEventListener('click', event => {
+  if (event.target.closest('button, a, input, [contenteditable]')) return;
+  words.focus();
+  // Coloca o cursor no final do rascunho, sem apagar texto existente.
+  const selection = window.getSelection();
+  if (selection) {
+    const range = document.createRange();
+    range.selectNodeContents(words);
+    range.collapse(false);
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+});
+
+words.addEventListener('input', updateDraft);
+words.addEventListener('paste', event => {
+  event.preventDefault();
+  const text = event.clipboardData.getData('text/plain');
+  document.execCommand('insertText', false, text);
+});
+
+$('adButton').addEventListener('click', () => {
+  const panel = $('adpanel');
+  panel.hidden = !panel.hidden;
+  $('adButton').classList.toggle('active', !panel.hidden);
+  $('adButton').setAttribute('aria-expanded', String(!panel.hidden));
+  if (panel.hidden) {
+    tier = 'normal';
+    document.querySelectorAll('.tier').forEach(button => {
+      button.classList.toggle('selected', button.dataset.tier === 'normal');
+    });
+  }
+  updateDraft();
+  if (!panel.hidden) $('adButton').focus();
+});
+
+document.addEventListener('keydown', event => {
+  if (event.key === 'Escape' && !$('adpanel').hidden) {
+    $('adpanel').hidden = true;
+    $('adButton').classList.remove('active');
+    $('adButton').setAttribute('aria-expanded', 'false');
+    $('adButton').focus();
+  }
+});
+
+$('tiers').addEventListener('click', event => {
+  const button = event.target.closest('[data-tier]');
+  if (!button || !(button.dataset.tier in rates)) return;
+  tier = button.dataset.tier;
+  document.querySelectorAll('.tier').forEach(item => {
+    item.classList.toggle('selected', item === button);
+  });
+  updateDraft();
+  words.focus();
+});
+
+// Continuar informa o valor, sem permitir finalizar pagamento ou publicar.
+$('continue').addEventListener('click', () => {
+  const text = value();
+  const n = count(text);
+  if (!n || text.length > 60000 || validateDraft(text)) return;
+  $('summary').textContent = `${n} ${n === 1 ? 'palavra' : 'palavras'} · ${money(n * rates[tier])}${tier === 'normal' ? '' : ' · Destaque AD'}`;
+  $('checkout').showModal();
+});
 
 // O Firestore pode devolver documentos fora de ordem; usamos data de publicação
 // e ID como desempate. O backend deverá fornecer createdAt ao publicar.
@@ -946,14 +1284,14 @@ onSnapshot(collection(db, 'contributions'), snapshot => {
     };
   }).filter(item => item.text.length > 0)
     .sort((a, b) => publishedAt(a) - publishedAt(b) || a.id.localeCompare(b.id));
-  words.dataset.placeholder = entries.length ? '' : 'Aguardando a primeira contribuição...';
   render();
   console.info(`[verbi.to] Sincronizado: ${entries.length} contribuições.`);
 }, error => {
   console.error('[verbi.to] Erro ao ler contribuições:', error);
-  words.dataset.placeholder = 'Não foi possível carregar o texto coletivo.';
+  console.warn('[verbi.to] O rascunho continua disponível, mas o texto público não foi carregado.');
 });
 render();
+updateDraft();
 </script>
 </body>
 </html>
