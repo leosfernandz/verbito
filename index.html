@@ -807,7 +807,7 @@ html.light .mirror .marked { opacity:1; }
 <button class="pix" disabled>Pix copia e cola ⧉</button>
 </aside>
 </div>
-<footer class="foot">Protótipo local · Pagamento simulado · Sem Pix real ou moderação automática</footer>
+<footer class="foot">Texto coletivo em tempo real · Publicações temporariamente indisponíveis</footer>
 </div>
 <dialog id="checkout" class="dialog">
 <h2>Confirmar contribuição</h2>
@@ -815,182 +815,145 @@ html.light .mirror .marked { opacity:1; }
 </p>
 <label for="nickname">Apelido (opcional)</label>
 <input id="nickname" maxlength="20" placeholder="Anônimo">
-<p class="hint">Simulação: nenhum valor será cobrado.</p>
+<p class="hint">Publicação indisponível até a integração do Pix.</p>
 <div class="buttons">
 <button class="btn" id="cancel">Cancelar</button>
 <button class="btn primary" id="simulate">Simular pagamento</button>
 </div>
 </dialog>
-<script>
+<script type="module">
 /* ============================================================
-   VERBI.TO — COMPORTAMENTO DO PROTÓTIPO
-   Demonstração local: não processa pagamentos reais.
-   O texto é salvo apenas no localStorage deste navegador.
+   VERBI.TO — LEITURA PÚBLICA EM TEMPO REAL
+   Nenhuma escrita no Firestore, checkout ou pagamento de teste.
    ============================================================ */
+import { initializeApp } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-app.js";
+import { getFirestore, collection, onSnapshot } from "https://www.gstatic.com/firebasejs/13.4.0/firebase-firestore.js";
 
-(()=> {
-  'use strict';
-  const $=id=>document.getElementById(id),money=n=>n.toLocaleString('pt-BR', {
-    style:'currency',currency:'BRL'
-  }),count=s=>s.trim()?s.trim().split(/\s+/u).length:0;
-  const rates= {
-    normal:1,soft:5,glow:10,max:20
-  };
-  let tier='normal',entries=[];
-  const key='verbi-demo-v1';
-  try {
-    const old=JSON.parse(localStorage.getItem(key)||'[]');
-    if(Array.isArray(old))entries=old.filter(e=>e&&typeof e.text==='string'&&rates[e.tier]).slice(-100)
-  }
-  catch {
-  }
-  const editor=$('editor'),space=$('textspace'),words=$('words'),mirror=$('mirror');
-  const value=()=>words.innerText.replace(/\u00a0/g,' ').replace(/\n{3,}/g,'\n\n').trim();
-  let frame=0;
-  // Renderiza as contribuições publicadas e o total de participantes.
+const firebaseConfig = {
+  apiKey: "AIzaSyAiSky0_wS_rkEeg160IfkjLrFv_OfprOc",
+  authDomain: "verbi-to.firebaseapp.com",
+  projectId: "verbi-to",
+  storageBucket: "verbi-to.firebasestorage.app",
+  messagingSenderId: "1019055985080",
+  appId: "1:1019055985080:web:489512bf4995b00ec2ff4d",
+  measurementId: "G-LTPV6W80VX"
+};
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+const $ = id => document.getElementById(id);
+const editor = $('editor');
+const space = $('textspace');
+const words = $('words');
+const mirror = $('mirror');
+let entries = [];
+let frame = 0;
+
+// Bloqueia qualquer contribuição enquanto o Pix real não estiver disponível.
+words.setAttribute('contenteditable', 'false');
+words.setAttribute('aria-readonly', 'true');
+words.dataset.placeholder = 'Aguardando a primeira contribuição...';
+$('continue').disabled = true;
+$('continue').title = 'Publicação disponível após integração do Pix';
+$('adButton').disabled = true;
+$('adButton').title = 'Anúncios disponíveis após integração do Pix';
+$('adpanel').hidden = true;
+$('wordCount').textContent = '0 palavras';
+$('price').textContent = 'R$ 0,00';
+$('simulate').disabled = true;
+$('simulate').textContent = 'Pagamento indisponível';
+$('checkout').close?.();
+$('cancel').addEventListener('click', () => $('checkout').close());
+
+// O Firestore pode devolver documentos fora de ordem; usamos data de publicação
+// e ID como desempate. O backend deverá fornecer createdAt ao publicar.
+function publishedAt(item) {
+  const v = item.createdAt;
+  if (v && typeof v.toMillis === 'function') return v.toMillis();
+  if (typeof v === 'string') return Date.parse(v) || 0;
+  if (typeof v === 'number') return v;
+  return 0;
+}
+
 function render() {
-    const root=$('published');
-    root.replaceChildren();
-    for(const e of entries) {
-      const span=document.createElement('span');
-      span.textContent=e.text+' ';
-      if(e.tier!=='normal') {
-        span.className='marked '+e.tier;
-        span.textContent='';
-        const ad=document.createElement('sup');
-        ad.className='admark';
-        ad.textContent='AD';
-        span.append(ad,document.createTextNode(e.text+' '))
-      }
-      root.append(span)
+  const root = $('published');
+  root.replaceChildren();
+  for (const e of entries) {
+    const span = document.createElement('span');
+    if (e.tier === 'normal') {
+      span.textContent = e.text + ' ';
+    } else {
+      span.className = 'marked ' + e.tier;
+      const ad = document.createElement('sup');
+      ad.className = 'admark';
+      ad.textContent = 'AD';
+      span.append(ad, document.createTextNode(e.text + ' '));
     }
-    $('participants').textContent=entries.length.toLocaleString('pt-BR');
-    fitSoon()
+    root.append(span);
   }
-  // Exibe a prévia do destaque AD sobre o texto digitado.
-function preview() {
-    const text=value();
-    mirror.replaceChildren();
-    const show=tier!=='normal'&&!!text;
-    mirror.hidden=!show;
-    words.classList.toggle('ad-preview',show);
-    if(show) {
-      const mark=document.createElement('span');
-      mark.className='marked '+tier;
-      const ad=document.createElement('sup');
-      ad.className='admark';
-      ad.textContent='AD';
-      mark.append(ad,document.createTextNode(text));
-      mirror.append(mark)
-    }
-  }
-  // Agenda o ajuste de fonte no próximo quadro de animação.
+  $('participants').textContent = entries.length.toLocaleString('pt-BR');
+  fitSoon();
+}
+
 function fitSoon() {
-    cancelAnimationFrame(frame);
-    frame=requestAnimationFrame(fit)
-  }
-  // Ajusta a tipografia ao espaço disponível antes de permitir rolagem.
+  cancelAnimationFrame(frame);
+  frame = requestAnimationFrame(fit);
+}
+
 function fit() {
-    const min=13,max=Math.max(24,Math.min(90,space.clientWidth*.105));
-    let lo=min,hi=max;
+  const min = 13;
+  const max = Math.max(24, Math.min(90, space.clientWidth * .105));
+  let lo = min, hi = max;
+  editor.classList.remove('scrolling');
+  space.style.overflow = 'hidden';
+  for (let i = 0; i < 13; i++) {
+    const mid = (lo + hi) / 2;
+    editor.style.setProperty('--editor-font', mid + 'px');
+    if (space.scrollHeight <= space.clientHeight + 2 && space.scrollWidth <= space.clientWidth + 2) lo = mid;
+    else hi = mid;
+  }
+  editor.style.setProperty('--editor-font', lo + 'px');
+  if (space.scrollHeight > space.clientHeight + 3) {
+    editor.classList.add('scrolling');
+    space.style.overflow = 'auto';
+  } else {
     editor.classList.remove('scrolling');
-    space.style.overflow='hidden';
-    for(let i=0;
-    i<13;
-    i++) {
-      const mid=(lo+hi)/2;
-      editor.style.setProperty('--editor-font',mid+'px');
-      if(space.scrollHeight<=space.clientHeight+2&&space.scrollWidth<=space.clientWidth+2)lo=mid;
-      else hi=mid
-    }editor.style.setProperty('--editor-font',lo+'px');
-    if(space.scrollHeight>space.clientHeight+3) {
-      editor.classList.add('scrolling');
-      space.style.overflow='auto'
-    }else {
-      editor.classList.remove('scrolling');
-      space.style.overflow='hidden'
-    }
+    space.style.overflow = 'hidden';
   }
-  // Atualiza contagem, preço, prévia e dimensionamento do editor.
-function update() {
-    const n=count(value());
-    $('wordCount').textContent=n+' '+(n===1?'palavra':'palavras');
-    $('price').textContent=money(n*rates[tier]);
-    $('continue').disabled=n===0||value().length>60000;
-    preview();
-    fitSoon()
-  }
-  // Eventos: edição, anúncio, checkout simulado, tema e redimensionamento.
-words.addEventListener('input',update);
-  words.addEventListener('paste',e=> {
-    e.preventDefault();
-    const text=e.clipboardData.getData('text/plain');
-    document.execCommand('insertText',false,text)
-  });
-  $('adButton').addEventListener('click',()=> {
-    const p=$('adpanel');
-    p.hidden=!p.hidden;
-    $('adButton').classList.toggle('active',!p.hidden);
-    $('adButton').setAttribute('aria-expanded',String(!p.hidden));
-    if(p.hidden) {
-      tier='normal';
-      document.querySelectorAll('.tier').forEach(b=>b.classList.toggle('selected',b.dataset.tier==='normal'))
-    }
-    update();
-    words.focus()
-  });
-  $('tiers').addEventListener('click',e=> {
-    const b=e.target.closest('[data-tier]');
-    if(!b)return;
-    tier=b.dataset.tier;
-    document.querySelectorAll('.tier').forEach(x=>x.classList.toggle('selected',x===b));
-    update();
-    words.focus()
-  });
-  $('continue').addEventListener('click',()=> {
-    const text=value(),n=count(text);
-    if(!n||text.length>60000)return;
-    $('summary').textContent=`${n} ${n===1?'palavra':'palavras'} · ${money(n*rates[tier])}${tier==='normal'?'':' · Destaque AD'}`;
-    $('checkout').showModal()
-  });
-  $('cancel').addEventListener('click',()=>$('checkout').close());
-  $('simulate').addEventListener('click',()=> {
-    const text=value();
-    if(!text)return;
-    entries.push( {
-      text,tier,nickname:$('nickname').value.trim()||'Anônimo',createdAt:new Date().toISOString()
-    });
-    try {
-      localStorage.setItem(key,JSON.stringify(entries.slice(-100)))
-    }
-    catch {
-    }
-    words.textContent='';
-    $('nickname').value='';
-    $('checkout').close();
-    render();
-    update();
-    words.focus()
-  });
-  $('theme').addEventListener('click',()=> {
-    document.documentElement.classList.toggle('light');
-    try {
-      localStorage.setItem('verbi-theme',document.documentElement.classList.contains('light')?'light':'dark')
-    }
-    catch {
-    }
-    fitSoon()
-  });
+}
+
+$('theme').addEventListener('click', () => {
+  document.documentElement.classList.toggle('light');
   try {
-    if(localStorage.getItem('verbi-theme')==='light')document.documentElement.classList.add('light')
-  }
-  catch {
-  }
-  new ResizeObserver(fitSoon).observe(space);
-  window.addEventListener('resize',fitSoon);
+    localStorage.setItem('verbi-theme', document.documentElement.classList.contains('light') ? 'light' : 'dark');
+  } catch {}
+  fitSoon();
+});
+try {
+  if (localStorage.getItem('verbi-theme') === 'light') document.documentElement.classList.add('light');
+} catch {}
+new ResizeObserver(fitSoon).observe(space);
+window.addEventListener('resize', fitSoon);
+
+// Snapshot em tempo real. Apenas dados publicados, nunca o localStorage.
+onSnapshot(collection(db, 'contributions'), snapshot => {
+  entries = snapshot.docs.map(doc => {
+    const data = doc.data();
+    return {
+      id: doc.id,
+      text: typeof data.text === 'string' ? data.text : '',
+      tier: ['normal', 'soft', 'glow', 'max'].includes(data.tier) ? data.tier : 'normal',
+      createdAt: data.createdAt
+    };
+  }).filter(item => item.text.length > 0)
+    .sort((a, b) => publishedAt(a) - publishedAt(b) || a.id.localeCompare(b.id));
+  words.dataset.placeholder = entries.length ? '' : 'Aguardando a primeira contribuição...';
   render();
-  update();
-})();
+  console.info(`[verbi.to] Sincronizado: ${entries.length} contribuições.`);
+}, error => {
+  console.error('[verbi.to] Erro ao ler contribuições:', error);
+  words.dataset.placeholder = 'Não foi possível carregar o texto coletivo.';
+});
+render();
 </script>
 </body>
 </html>
