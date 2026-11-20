@@ -1,0 +1,895 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0c0b10">
+<title>verbi.to — Um texto escrito por todos</title>
+<style>
+/* ============================================================
+   VERBI.TO — ESTILOS
+   Variáveis, estrutura, editor, anúncios, Pix e responsividade.
+   Valores e regras visuais preservados do protótipo original.
+   ============================================================ */
+
+:root {
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;
+  color-scheme:dark;
+  --bg:#0c0b10;
+  --fg:#f7f4fc;
+  --muted:#9d98aa;
+  --panel:#191620;
+  --field:#16131f;
+  --line:#40394a;
+  --accent:#b48aff;
+  --editor-font:60px
+}
+
+html.light {
+  color-scheme:light;
+  --bg:#faf9fc;
+  --fg:#201b29;
+  --muted:#746d80;
+  --panel:#fff;
+  --field:#f4f0f9;
+  --line:#d8d0e3;
+  --accent:#8154d4
+}
+
+* {
+  box-sizing:border-box
+}
+
+html,body {
+  margin:0;
+  width:100%;
+  height:100%;
+  overflow:hidden
+}
+
+body {
+  background:var(--bg);
+  color:var(--fg)
+}
+
+button,textarea,input {
+  font:inherit
+}
+
+button {
+  cursor:pointer
+}
+
+button:disabled {
+  opacity:.45;
+  cursor:not-allowed
+}
+
+.shell {
+  height:100dvh;
+  max-width:1700px;
+  margin:auto;
+  padding:clamp(10px,2.1vh,24px) clamp(12px,3vw,50px);
+  display:grid;
+  grid-template-rows:auto minmax(0,1fr) auto;
+  gap:clamp(8px,1.5vh,17px);
+  min-height:0
+}
+
+.top {
+  display:grid;
+  grid-template-columns:1fr auto 1fr;
+  align-items:center;
+  gap:8px;
+  min-width:0
+}
+
+.logo {
+  font-size:clamp(20px,2vw,29px);
+  font-weight:800;
+  letter-spacing:-1.3px
+}
+
+.logo span {
+  color:var(--accent)
+}
+
+.top .eyebrow {
+  grid-column:2;
+  white-space:nowrap
+}
+
+.top .theme {
+  grid-column:3;
+  justify-self:end
+}
+
+.theme {
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:40px;
+  padding:7px 12px;
+  color:var(--fg)
+}
+
+.eyebrow {
+  text-align:center;
+  font-size:clamp(10px,1vw,14px);
+  letter-spacing:clamp(.13em,.5vw,.35em);
+  color:var(--muted);
+  margin:0
+}
+
+.layout {
+  min-height:0;
+  display:grid;
+  grid-template-columns:minmax(0,1fr) clamp(160px,18vw,220px);
+  gap:clamp(10px,1.5vw,22px)
+}
+
+.main {
+  min-height:0;
+  display:grid;
+  grid-template-rows:minmax(0,1fr) auto auto;
+  gap:10px
+}
+
+.editor {
+  position:relative;
+  min-height:0;
+  border:1px solid var(--accent);
+  border-radius:clamp(16px,2vw,28px);
+  background:var(--field);
+  padding:clamp(14px,2.5vw,34px);
+  box-shadow:0 0 25px #9b68ff12;
+  overflow:hidden;
+  display:flex;
+  flex-direction:column;
+  justify-content:center
+}
+
+.editor.scrolling {
+  justify-content:flex-start
+}
+
+.textspace {
+  min-height:0;
+  overflow:hidden;
+  position:relative;
+  display:flex;
+  flex-direction:column;
+  justify-content:center
+}
+
+.editor.scrolling .textspace {
+  overflow:auto;
+  justify-content:flex-start;
+  scrollbar-width:thin
+}
+
+.published,.typing {
+  font-size:var(--editor-font);
+  line-height:1.18;
+  font-weight:650;
+  overflow-wrap:anywhere;
+  white-space:pre-wrap;
+  word-break:normal
+}
+
+.published {
+  flex:none
+}
+
+.published:empty {
+  display:none
+}
+
+.entry {
+  position:relative;
+  min-height:1.25em;
+  flex:none;
+  font-size:var(--editor-font)
+}
+
+.typing {
+  position:relative;
+  min-height:1.25em;
+  outline:none;
+  caret-color:var(--accent);
+  z-index:1
+}
+
+.typing:empty:before {
+  content:attr(data-placeholder);
+  color:var(--muted);
+  opacity:.35;
+  pointer-events:none
+}
+
+.typing.ad-preview {
+  color:transparent;
+  caret-color:var(--accent)
+}
+
+.mirror {
+  position:absolute;
+  inset:0;
+  z-index:0;
+  pointer-events:none;
+  white-space:pre-wrap;
+  overflow-wrap:anywhere;
+  line-height:1.18;
+  font-size:inherit;
+  font-weight:650
+}
+
+.mirror[hidden] {
+  display:none
+}
+
+.mirror .marked {
+  border-radius:.15em;
+  padding:0 .05em;
+  box-decoration-break:clone;
+  -webkit-box-decoration-break:clone
+}
+
+.admark {
+  font-size:.25em;
+  font-weight:800;
+  vertical-align:middle;
+  display:inline-block;
+  margin-right:.4em;
+  letter-spacing:0;
+  color:inherit;
+  border:1px solid currentColor;
+  border-radius:99px;
+  padding:.1em .35em;
+  line-height:1.15
+}
+
+.marked.soft {
+  background:#d2b5ff;
+  color:#231337
+}
+
+.marked.glow {
+  border:1px solid #d7a9ff;
+  background:linear-gradient(120deg,#5620a5,#8314b7);
+  color:#fff;
+  box-shadow:0 0 .22em #b48aff
+}
+
+.marked.max {
+  border:1px solid #ffd579;
+  color:#fff8e4;
+  box-shadow:0 0 .34em #ffc36d;
+  background:linear-gradient(120deg,#754000,#ae680a)
+}
+
+.actions {
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  min-height:38px
+}
+
+.people {
+  font-size:clamp(11px,1.1vw,14px);
+  color:var(--muted);
+  white-space:nowrap
+}
+
+.buttons {
+  display:flex;
+  gap:8px
+}
+
+.btn {
+  border:1px solid var(--line);
+  background:transparent;
+  color:var(--fg);
+  border-radius:100px;
+  padding:9px clamp(11px,1.5vw,20px);
+  font-weight:650;
+  font-size:clamp(12px,1vw,14px);
+  white-space:nowrap
+}
+
+.btn.primary {
+  background:var(--accent);
+  color:#160e24;
+  border-color:var(--accent)
+}
+
+.btn.active {
+  border-color:var(--accent);
+  color:var(--accent)
+}
+
+.adpanel {
+  border:1px solid var(--line);
+  border-radius:16px;
+  padding:9px 11px;
+  background:var(--panel)
+}
+
+.adpanel[hidden] {
+  display:none
+}
+
+.adpanel-top {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  margin-bottom:8px;
+  font-size:12px;
+  color:var(--muted)
+}
+
+.tiers {
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:7px
+}
+
+.tier {
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:var(--bg);
+  color:var(--fg);
+  padding:8px 3px;
+  min-width:0;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:5px
+}
+
+.tier.selected {
+  outline:1.5px solid var(--accent)
+}
+
+.tier small {
+  font-size:clamp(9px,.8vw,11px);
+  color:var(--muted)
+}
+
+.sample {
+  font-size:clamp(9px,.9vw,12px);
+  font-weight:800;
+  padding:4px 5px;
+  border-radius:5px;
+  white-space:nowrap
+}
+
+.sample.soft {
+  background:#d2b5ff;
+  color:#231337
+}
+
+.sample.glow {
+  border:1px solid #b48aff;
+  background:linear-gradient(120deg,#5620a5,#8314b7);
+  color:#fff;
+  box-shadow:0 0 9px #b48aff
+}
+
+.sample.max {
+  border:1px solid #f2bf64;
+  background:linear-gradient(120deg,#754000,#ae680a);
+  color:#fff8e4;
+  box-shadow:0 0 12px #ffc36d
+}
+
+.payment {
+  border:1px solid var(--line);
+  background:var(--panel);
+  border-radius:19px;
+  padding:clamp(10px,1.6vw,19px);
+  text-align:center;
+  align-self:start
+}
+
+.payment h2 {
+  font-size:clamp(12px,1.3vw,16px);
+  margin:0 0 8px
+}
+
+.count {
+  font-size:12px;
+  color:var(--muted)
+}
+
+.price {
+  font-size:clamp(21px,2.5vw,30px);
+  font-weight:800;
+  color:var(--accent);
+  margin:6px 0 11px
+}
+
+.qr {
+  width:clamp(70px,8.5vw,105px);
+  aspect-ratio:1;
+  margin:auto;
+  border:1px dashed var(--line);
+  border-radius:9px;
+  display:grid;
+  place-items:center;
+  color:var(--muted);
+  font-size:10px;
+  padding:7px
+}
+
+.pix {
+  width:100%;
+  margin-top:11px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:transparent;
+  color:var(--muted);
+  font-size:11px;
+  padding:9px 5px
+}
+
+.foot {
+  font-size:10px;
+  color:var(--muted);
+  text-align:center;
+  line-height:1.25
+}
+
+.dialog {
+  width:min(420px,calc(100% - 24px));
+  background:var(--panel);
+  color:var(--fg);
+  border:1px solid var(--line);
+  border-radius:18px;
+  padding:22px
+}
+
+.dialog::backdrop {
+  background:#000a
+}
+
+.dialog h2 {
+  margin:0 0 12px
+}
+
+.dialog input {
+  width:100%;
+  background:var(--bg);
+  color:var(--fg);
+  border:1px solid var(--line);
+  border-radius:10px;
+  padding:12px;
+  margin:9px 0 16px
+}
+
+.dialog .buttons {
+  justify-content:flex-end
+}
+
+.hint {
+  font-size:12px;
+  color:var(--muted)
+}
+
+.sr {
+  position:absolute;
+  width:1px;
+  height:1px;
+  overflow:hidden;
+  clip:rect(0,0,0,0)
+}
+
+@media(max-width:650px) {
+  .top {
+  grid-template-columns:auto minmax(0,1fr) auto;
+  gap:5px
+}
+
+.top .eyebrow {
+  font-size:clamp(7px,1.9vw,10px);
+  letter-spacing:.08em;
+  white-space:normal;
+  line-height:1.2
+}
+
+.logo {
+  font-size:clamp(16px,4.3vw,22px)
+}
+
+.theme {
+  font-size:11px;
+  padding:6px 7px
+}
+
+.shell {
+  padding:10px 10px 8px;
+  gap:9px
+}
+
+.layout {
+  grid-template-columns:minmax(0,1fr);
+  grid-template-rows:minmax(0,1fr) auto;
+  gap:8px
+}
+
+.main {
+  grid-template-rows:minmax(0,1fr) auto auto
+}
+
+.editor {
+  padding:15px
+}
+
+.payment {
+  width:100%;
+  display:grid;
+  grid-template-columns:1fr auto;
+  grid-template-rows:auto auto;
+  gap:2px 10px;
+  align-items:center;
+  padding:8px 12px;
+  text-align:left
+}
+
+.payment h2 {
+  font-size:12px;
+  margin:0
+}
+
+.payment .count {
+  font-size:11px
+}
+
+.payment .price {
+  font-size:22px;
+  margin:0
+}
+
+.payment .qr {
+  display:none
+}
+
+.payment .pix {
+  margin:0;
+  grid-column:2;
+  grid-row:1/3;
+  padding:9px 10px
+}
+
+.actions {
+  min-height:34px
+}
+
+.btn {
+  padding:8px 12px
+}
+
+.adpanel {
+  padding:8px
+}
+
+.adpanel-top {
+  font-size:11px;
+  margin-bottom:6px
+}
+
+.tier {
+  padding:5px 1px;
+  gap:3px
+}
+
+.sample {
+  font-size:9px;
+  padding:3px
+}
+
+.tier small {
+  font-size:9px
+}
+
+.foot {
+  font-size:9px
+}
+
+}
+
+@media(max-height:560px) {
+  .top .eyebrow {
+  font-size:9px
+}
+
+.shell {
+  gap:5px;
+  padding-top:6px;
+  padding-bottom:5px
+}
+
+.editor {
+  padding:10px
+}
+
+.payment {
+  padding:7px
+}
+
+.adpanel {
+  padding:6px
+}
+
+.adpanel-top {
+  margin-bottom:4px
+}
+
+.tier {
+  padding:4px 2px
+}
+
+.foot {
+  font-size:9px
+}
+
+}
+
+
+</style>
+</head>
+<body>
+<div class="shell">
+<header class="top">
+<div class="logo">verbi<span>.to</span>
+</div>
+<p class="eyebrow">UM TEXTO ESCRITO POR TODOS</p>
+<button class="theme" id="theme" aria-label="Alternar tema">☾ / ☀</button>
+</header>
+<div class="layout">
+<main class="main">
+<section class="editor" id="editor" aria-label="Texto coletivo e escrita">
+<div class="textspace" id="textspace">
+<div class="published" id="published">
+</div>
+<div class="entry">
+<div class="mirror" id="mirror" hidden aria-hidden="true">
+</div>
+<div class="typing" id="words" role="textbox" aria-label="Escreva suas palavras" aria-multiline="true" contenteditable="plaintext-only" data-placeholder="palavra..." spellcheck="true">
+</div>
+</div>
+</div>
+</section>
+<div class="actions">
+<div class="people">♧ <strong id="participants">0</strong> participantes</div>
+<div class="buttons">
+<button class="btn" id="adButton" aria-expanded="false">♧ Anúncio</button>
+<button class="btn primary" id="continue" disabled>Continuar →</button>
+</div>
+</div>
+<section id="adpanel" class="adpanel" hidden>
+<div class="adpanel-top">
+<span>Prévia no seu próprio texto</span>
+<span>Preço por palavra</span>
+</div>
+<div class="tiers" id="tiers">
+<button class="tier selected" data-tier="normal">
+<span class="sample">Exemplo</span>
+<small>Normal · R$ 1</small>
+</button>
+<button class="tier" data-tier="soft">
+<span class="sample soft">
+<small>AD</small> Exemplo</span>
+<small>Destaque · R$ 5</small>
+</button>
+<button class="tier" data-tier="glow">
+<span class="sample glow">
+<small>AD</small> Exemplo</span>
+<small>Premium · R$ 10</small>
+</button>
+<button class="tier" data-tier="max">
+<span class="sample max">
+<small>AD</small> Exemplo</span>
+<small>Máximo · R$ 20</small>
+</button>
+</div>
+</section>
+</main>
+<aside class="payment">
+<div>
+<h2>Sua contribuição</h2>
+<div class="count" id="wordCount">0 palavras</div>
+<div class="price" id="price">R$ 0,00</div>
+</div>
+<div class="qr">QR CODE<br>PIX FUTURO</div>
+<button class="pix" disabled>Pix copia e cola ⧉</button>
+</aside>
+</div>
+<footer class="foot">Protótipo local · Pagamento simulado · Sem Pix real ou moderação automática</footer>
+</div>
+<dialog id="checkout" class="dialog">
+<h2>Confirmar contribuição</h2>
+<p id="summary">
+</p>
+<label for="nickname">Apelido (opcional)</label>
+<input id="nickname" maxlength="20" placeholder="Anônimo">
+<p class="hint">Simulação: nenhum valor será cobrado.</p>
+<div class="buttons">
+<button class="btn" id="cancel">Cancelar</button>
+<button class="btn primary" id="simulate">Simular pagamento</button>
+</div>
+</dialog>
+<script>
+/* ============================================================
+   VERBI.TO — COMPORTAMENTO DO PROTÓTIPO
+   Demonstração local: não processa pagamentos reais.
+   O texto é salvo apenas no localStorage deste navegador.
+   ============================================================ */
+
+(()=> {
+  'use strict';
+  const $=id=>document.getElementById(id),money=n=>n.toLocaleString('pt-BR', {
+    style:'currency',currency:'BRL'
+  }),count=s=>s.trim()?s.trim().split(/\s+/u).length:0;
+  const rates= {
+    normal:1,soft:5,glow:10,max:20
+  };
+  let tier='normal',entries=[];
+  const key='verbi-demo-v1';
+  try {
+    const old=JSON.parse(localStorage.getItem(key)||'[]');
+    if(Array.isArray(old))entries=old.filter(e=>e&&typeof e.text==='string'&&rates[e.tier]).slice(-100)
+  }
+  catch {
+  }
+  const editor=$('editor'),space=$('textspace'),words=$('words'),mirror=$('mirror');
+  const value=()=>words.innerText.replace(/\u00a0/g,' ').replace(/\n{3,}/g,'\n\n').trim();
+  let frame=0;
+  // Renderiza as contribuições publicadas e o total de participantes.
+function render() {
+    const root=$('published');
+    root.replaceChildren();
+    for(const e of entries) {
+      const span=document.createElement('span');
+      span.textContent=e.text+' ';
+      if(e.tier!=='normal') {
+        span.className='marked '+e.tier;
+        span.textContent='';
+        const ad=document.createElement('sup');
+        ad.className='admark';
+        ad.textContent='AD';
+        span.append(ad,document.createTextNode(e.text+' '))
+      }
+      root.append(span)
+    }
+    $('participants').textContent=entries.length.toLocaleString('pt-BR');
+    fitSoon()
+  }
+  // Exibe a prévia do destaque AD sobre o texto digitado.
+function preview() {
+    const text=value();
+    mirror.replaceChildren();
+    const show=tier!=='normal'&&!!text;
+    mirror.hidden=!show;
+    words.classList.toggle('ad-preview',show);
+    if(show) {
+      const mark=document.createElement('span');
+      mark.className='marked '+tier;
+      const ad=document.createElement('sup');
+      ad.className='admark';
+      ad.textContent='AD';
+      mark.append(ad,document.createTextNode(text));
+      mirror.append(mark)
+    }
+  }
+  // Agenda o ajuste de fonte no próximo quadro de animação.
+function fitSoon() {
+    cancelAnimationFrame(frame);
+    frame=requestAnimationFrame(fit)
+  }
+  // Ajusta a tipografia ao espaço disponível antes de permitir rolagem.
+function fit() {
+    const min=13,max=Math.max(24,Math.min(90,space.clientWidth*.105));
+    let lo=min,hi=max;
+    editor.classList.remove('scrolling');
+    space.style.overflow='hidden';
+    for(let i=0;
+    i<13;
+    i++) {
+      const mid=(lo+hi)/2;
+      editor.style.setProperty('--editor-font',mid+'px');
+      if(space.scrollHeight<=space.clientHeight+2&&space.scrollWidth<=space.clientWidth+2)lo=mid;
+      else hi=mid
+    }editor.style.setProperty('--editor-font',lo+'px');
+    if(space.scrollHeight>space.clientHeight+3) {
+      editor.classList.add('scrolling');
+      space.style.overflow='auto'
+    }else {
+      editor.classList.remove('scrolling');
+      space.style.overflow='hidden'
+    }
+  }
+  // Atualiza contagem, preço, prévia e dimensionamento do editor.
+function update() {
+    const n=count(value());
+    $('wordCount').textContent=n+' '+(n===1?'palavra':'palavras');
+    $('price').textContent=money(n*rates[tier]);
+    $('continue').disabled=n===0||value().length>60000;
+    preview();
+    fitSoon()
+  }
+  // Eventos: edição, anúncio, checkout simulado, tema e redimensionamento.
+words.addEventListener('input',update);
+  words.addEventListener('paste',e=> {
+    e.preventDefault();
+    const text=e.clipboardData.getData('text/plain');
+    document.execCommand('insertText',false,text)
+  });
+  $('adButton').addEventListener('click',()=> {
+    const p=$('adpanel');
+    p.hidden=!p.hidden;
+    $('adButton').classList.toggle('active',!p.hidden);
+    $('adButton').setAttribute('aria-expanded',String(!p.hidden));
+    if(p.hidden) {
+      tier='normal';
+      document.querySelectorAll('.tier').forEach(b=>b.classList.toggle('selected',b.dataset.tier==='normal'))
+    }
+    update();
+    words.focus()
+  });
+  $('tiers').addEventListener('click',e=> {
+    const b=e.target.closest('[data-tier]');
+    if(!b)return;
+    tier=b.dataset.tier;
+    document.querySelectorAll('.tier').forEach(x=>x.classList.toggle('selected',x===b));
+    update();
+    words.focus()
+  });
+  $('continue').addEventListener('click',()=> {
+    const text=value(),n=count(text);
+    if(!n||text.length>60000)return;
+    $('summary').textContent=`${n} ${n===1?'palavra':'palavras'} · ${money(n*rates[tier])}${tier==='normal'?'':' · Destaque AD'}`;
+    $('checkout').showModal()
+  });
+  $('cancel').addEventListener('click',()=>$('checkout').close());
+  $('simulate').addEventListener('click',()=> {
+    const text=value();
+    if(!text)return;
+    entries.push( {
+      text,tier,nickname:$('nickname').value.trim()||'Anônimo',createdAt:new Date().toISOString()
+    });
+    try {
+      localStorage.setItem(key,JSON.stringify(entries.slice(-100)))
+    }
+    catch {
+    }
+    words.textContent='';
+    $('nickname').value='';
+    $('checkout').close();
+    render();
+    update();
+    words.focus()
+  });
+  $('theme').addEventListener('click',()=> {
+    document.documentElement.classList.toggle('light');
+    try {
+      localStorage.setItem('verbi-theme',document.documentElement.classList.contains('light')?'light':'dark')
+    }
+    catch {
+    }
+    fitSoon()
+  });
+  try {
+    if(localStorage.getItem('verbi-theme')==='light')document.documentElement.classList.add('light')
+  }
+  catch {
+  }
+  new ResizeObserver(fitSoon).observe(space);
+  window.addEventListener('resize',fitSoon);
+  render();
+  update();
+})();
+</script>
+</body>
+</html>
